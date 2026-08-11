@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TikTok Brain · Atlas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E🧠%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1c2230;
+    --border: #2a3140;
+    --text: #e6edf3;
+    --muted: #8b96a8;
+    --accent: #7c9eff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif; font-size: 14px; }
+  header { position: sticky; top: 0; z-index: 10; background: var(--panel);
+    border-bottom: 1px solid var(--border); padding: 14px 20px; }
+  .title { display: flex; align-items: baseline; gap: 12px; }
+  h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .meta { color: var(--muted); font-size: 12px; }
+  .controls { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  input[type="search"] { background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 12px; border-radius: 6px; min-width: 280px; font-size: 13px; }
+  input[type="search"]:focus { outline: none; border-color: var(--accent); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
+    padding: 4px 10px; border-radius: 999px; font-size: 12px; cursor: pointer; user-select: none; }
+  .chip:hover { color: var(--text); }
+  .chip.active { background: var(--accent); color: #0e1116; border-color: var(--accent); font-weight: 600; }
+  .group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); margin-right: 4px; align-self: center; }
+  main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+  .grid { display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.15s; }
+  .card:hover { border-color: #3a4254; }
+  .card-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .card-title { font-size: 14px; font-weight: 600; line-height: 1.35; flex: 1; }
+  .badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 3px 7px; border-radius: 4px; white-space: nowrap; font-weight: 600; }
+  .badge.New { background: #1f2937; color: var(--muted); }
+  .badge.Reviewed { background: rgba(124, 158, 255, 0.15); color: var(--accent); }
+  .badge.Tasked { background: rgba(217, 153, 34, 0.18); color: var(--yellow); }
+  .badge.Implemented { background: rgba(63, 185, 80, 0.18); color: var(--green); }
+  .badge.Dismissed { background: rgba(248, 81, 73, 0.12); color: var(--red); }
+  .card-meta { display: flex; gap: 10px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .theme-tag { color: var(--purple); }
+  .summary { font-size: 13px; line-height: 1.45; color: #c9d1d9; flex: 1;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+    overflow: hidden; }
+  .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tag { font-size: 10px; background: var(--panel-2); padding: 2px 6px; border-radius: 3px;
+    color: var(--muted); }
+  .actions { display: flex; gap: 6px; align-items: center; padding-top: 4px;
+    border-top: 1px solid var(--border); }
+  select, .btn { background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 10px; border-radius: 5px; font-size: 12px;
+    cursor: pointer; font-family: inherit; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #0e1116; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { opacity: 0.9; color: #0e1116; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .footer { padding: 24px 20px; text-align: center; color: var(--muted); font-size: 11px; }
+  .empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; max-width: 720px; width: 90vw; padding: 0; }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  .modal-head { padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .modal-body { padding: 16px 20px; max-height: 70vh; overflow-y: auto; }
+  .modal-body h3 { margin: 18px 0 6px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--muted); }
+  .modal-body pre { white-space: pre-wrap; font-family: inherit; line-height: 1.55;
+    background: var(--panel-2); padding: 12px; border-radius: 6px; font-size: 13px; }
+  .modal-body a { color: var(--accent); }
+  .source-pill { font-size: 10px; padding: 2px 6px; border-radius: 3px;
+    background: var(--panel-2); color: var(--muted); }
+  .source-pill.live { color: var(--green); }
+  .source-pill.archive { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>🧠 TikTok Brain</h1>
+    <span class="meta" id="counts"></span>
+  </div>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search titles, summaries, transcripts…" />
+    <div class="chips" id="status-chips">
+      <span class="group-label">Status</span>
+    </div>
+    <div class="chips" id="theme-chips">
+      <span class="group-label">Theme</span>
+    </div>
+    <div class="chips" id="source-chips">
+      <span class="group-label">Source</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>No ideas match your filters.</div>
+</main>
+
+<footer class="footer" id="footer">Loading…</footer>
+
+<dialog id="detail">
+  <div class="modal-head">
+    <strong id="d-title"></strong>
+    <button class="btn" onclick="document.getElementById('detail').close()">Close</button>
+  </div>
+  <div class="modal-body" id="d-body"></div>
+</dialog>
+
+<script>
+// Demo build. The production deploy calls two Netlify Functions that persist
+// changes: status-update writes the status overlay back to the repo via the
+// GitHub Contents API, and clickup-promote creates a real task in the task
+// manager. This showcase keeps all changes in browser memory instead.
+const DEMO = true;
+const API_BASE = "/.netlify/functions";
+
+const STATUSES = ["New", "Reviewed", "Tasked", "Implemented", "Dismissed"];
+const THEMES = ["ai building", "coding", "business", "marketing", "other"];
+const SOURCES = ["live", "archive"];
+
+let state = {
+  ideas: [],
+  q: "",
+  status: null,
+  theme: null,
+  source: null,
+};
+
+async function load() {
+  const [data, built] = await Promise.all([
+    fetch("data.json").then(r => r.json()),
+    fetch("last_built.json").then(r => r.json()).catch(() => null),
+  ]);
+  state.ideas = data.ideas;
+  renderChips();
+  render();
+  if (built) {
+    if (built.demo) {
+      document.getElementById("footer").textContent =
+        `${built.idea_count} ideas · demo data · status changes stay in this browser tab`;
+    } else {
+      const age = Math.round((Date.now() - new Date(built.built_at)) / 60000);
+      const stale = age > 30 ? ' · ⚠️ stale' : '';
+      document.getElementById("footer").textContent =
+        `${built.idea_count} ideas · built ${age}m ago${stale}` +
+        (built.errors?.length ? ` · ${built.errors.length} parse errors` : '');
+    }
+  }
+}
+
+function renderChips() {
+  for (const [id, values] of [["status-chips", STATUSES], ["theme-chips", THEMES], ["source-chips", SOURCES]]) {
+    const el = document.getElementById(id);
+    for (const v of values) {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = v;
+      chip.onclick = () => {
+        const key = id.split("-")[0];
+        state[key] = state[key] === v ? null : v;
+        for (const c of el.querySelectorAll(".chip")) c.classList.remove("active");
+        if (state[key]) chip.classList.add("active");
+        render();
+      };
+      el.appendChild(chip);
+    }
+  }
+  document.getElementById("search").oninput = (e) => { state.q = e.target.value.toLowerCase(); render(); };
+}
+
+function matches(idea) {
+  if (state.status && idea.status !== state.status) return false;
+  if (state.theme && idea.theme !== state.theme) return false;
+  if (state.source && idea.source_folder !== state.source) return false;
+  if (state.q) {
+    const hay = (idea.title + " " + idea.summary + " " + idea.tags.join(" ") + " " + idea.transcript).toLowerCase();
+    if (!hay.includes(state.q)) return false;
+  }
+  return true;
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+  grid.innerHTML = "";
+  const filtered = state.ideas.filter(matches);
+  empty.hidden = filtered.length > 0;
+  document.getElementById("counts").textContent =
+    `${filtered.length} of ${state.ideas.length} ideas`;
+  for (const idea of filtered) grid.appendChild(card(idea));
+}
+
+function card(idea) {
+  const c = document.createElement("div");
+  c.className = "card";
+  const summary = idea.summary || (idea.key_ideas || "").slice(0, 280) || "(no summary)";
+  c.innerHTML = `
+    <div class="card-head">
+      <div class="card-title"></div>
+      <span class="badge ${idea.status}">${idea.status}</span>
+    </div>
+    <div class="card-meta">
+      <span>${idea.date}</span>
+      <span class="theme-tag">${idea.theme}</span>
+      <span class="source-pill ${idea.source_folder}">${idea.source_folder}</span>
+    </div>
+    <div class="summary"></div>
+    <div class="tags"></div>
+  `;
+  c.querySelector(".card-title").textContent = idea.title;
+  c.querySelector(".summary").textContent = summary;
+  const tagsEl = c.querySelector(".tags");
+  for (const t of idea.tags) {
+    const el = document.createElement("span");
+    el.className = "tag";
+    el.textContent = t;
+    tagsEl.appendChild(el);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  const sel = document.createElement("select");
+  for (const s of STATUSES) {
+    const opt = document.createElement("option");
+    opt.value = s; opt.textContent = s;
+    if (s === idea.status) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => updateStatus(idea, sel.value);
+  actions.appendChild(sel);
+
+  const view = document.createElement("button");
+  view.className = "btn";
+  view.textContent = "View";
+  view.onclick = () => openDetail(idea);
+  actions.appendChild(view);
+
+  const promote = document.createElement("button");
+  promote.className = "btn primary";
+  if (idea.clickup_task_id) {
+    promote.textContent = "↗ ClickUp";
+    promote.onclick = () => window.open(idea.clickup_url, "_blank");
+  } else {
+    promote.textContent = "→ Promote";
+    promote.onclick = () => promoteToClickUp(idea, promote);
+  }
+  actions.appendChild(promote);
+
+  c.appendChild(actions);
+  c.onclick = (e) => { if (e.target === c || e.target.classList.contains("summary") || e.target.classList.contains("card-title")) openDetail(idea); };
+  return c;
+}
+
+function openDetail(idea) {
+  document.getElementById("d-title").textContent = idea.title;
+  const body = document.getElementById("d-body");
+  body.innerHTML = `
+    <div class="card-meta" style="margin-bottom:12px">
+      <span>${idea.date}</span>
+      <span class="theme-tag">${idea.theme}</span>
+      <span class="source-pill ${idea.source_folder}">${idea.source_folder}</span>
+      <span class="badge ${idea.status}">${idea.status}</span>
+    </div>
+    ${idea.source_url ? `<div><a href="${idea.source_url}" target="_blank" rel="noopener">${idea.source_url}</a></div>` : ""}
+    ${idea.summary ? `<h3>Summary</h3><pre></pre>` : ""}
+    ${idea.key_ideas ? `<h3>Key Ideas</h3><pre></pre>` : ""}
+    ${idea.why_it_matters ? `<h3>Why It Matters</h3><pre></pre>` : ""}
+    ${idea.recommendations ? `<h3>Recommendations</h3><pre></pre>` : ""}
+    ${idea.transcript ? `<h3>Transcript</h3><pre></pre>` : ""}
+  `;
+  const pres = body.querySelectorAll("pre");
+  const fields = [idea.summary, idea.key_ideas, idea.why_it_matters, idea.recommendations, idea.transcript].filter(Boolean);
+  pres.forEach((p, i) => p.textContent = fields[i]);
+  document.getElementById("detail").showModal();
+}
+
+async function updateStatus(idea, newStatus) {
+  if (DEMO) {
+    idea.status = newStatus;
+    render();
+    return;
+  }
+  try {
+    const r = await fetch(`${API_BASE}/status-update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: idea.id, status: newStatus }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    idea.status = newStatus;
+    render();
+  } catch (e) {
+    alert("Status update failed: " + e.message);
+  }
+}
+
+async function promoteToClickUp(idea, btn) {
+  if (DEMO) {
+    idea.clickup_task_id = "DEMO-" + Math.floor(100 + Math.random() * 900);
+    idea.clickup_url = "https://example.com/tasks/" + idea.clickup_task_id;
+    idea.status = "Tasked";
+    render();
+    return;
+  }
+  btn.disabled = true; btn.textContent = "…";
+  try {
+    const r = await fetch(`${API_BASE}/clickup-promote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: idea.id }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "failed");
+    idea.clickup_task_id = data.task_id;
+    idea.clickup_url = data.task_url;
+    idea.status = "Tasked";
+    render();
+  } catch (e) {
+    alert("Promote failed: " + e.message);
+    btn.disabled = false;
+    btn.textContent = "→ Promote";
+  }
+}
+
+load();
+</script>
+</body>
+</html>
