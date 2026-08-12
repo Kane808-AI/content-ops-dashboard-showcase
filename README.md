@@ -12,6 +12,10 @@ click.
 > integrations were removed. The UI, the build pipeline, and the parsing code
 > are the production versions.
 
+![Triage grid — every captured idea as a card with status, theme, and one-click actions](docs/dashboard.png)
+
+![Detail view — summary, key ideas, recommendations, and full transcript per capture](docs/detail.png)
+
 ## Why it exists
 
 Saved folders are where ideas go to die. This closes the loop: every capture
